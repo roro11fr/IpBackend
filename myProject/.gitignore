@@ -1,0 +1,22 @@
+# Ignoră environment-ul virtual
+myVEnv/
+
+# Ignoră fișierele generate de Python
+*.pyc
+__pycache__/
+*.pyo
+
+# Ignoră fișierele și directoarele generate de IDE-uri
+*.idea
+*.vscode
+.DS_Store
+
+# Ignoră baza de date locală SQLite, dacă o folosești
+db.sqlite3
+
+# Ignoră fișierele de configurare locală
+.env
+
+# Ignoră alte fișiere temporare
+*.log
+*.tmp
