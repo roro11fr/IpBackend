@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista Profesori</title>
+</head>
+<body>
+    <h1>Lista Profesorilor</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ProfesorID</th>
+                <th>Nume</th>
+                <th>Prenume</th>
+                <th>Email</th>
+                <th>Telefon</th>
+                <th>Specializare</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profesor in profesori %}
+            <tr>
+                <td>{{ profesor.ProfesorID }}</td>
+                <td>{{ profesor.Nume }}</td>
+                <td>{{ profesor.Prenume }}</td>
+                <td>{{ profesor.Email }}</td>
+                <td>{{ profesor.Telefon }}</td>
+                <td>{{ profesor.Specializare }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

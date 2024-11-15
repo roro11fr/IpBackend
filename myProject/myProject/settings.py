@@ -75,13 +75,32 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+
+        'NAME': 'bazaip',                      # Or path to database file if using sqlite3.
+
+        # 'NAME': 'client_test',                      # Or path to database file if using sqlite3.
+
+        # 'NAME': 'promoart',                      # Or path to database file if using sqlite3.
+
+        'USER': 'root',
+
+        'PASSWORD': 'poiu8990',
+
+        'HOST': 'localhost',               # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+
+        'PORT': '3306',                        # Set to empty string for default.
+
+        'STORAGE_ENGINE': 'InnoDB',
+
+        'OPTIONS': {'charset': 'utf8mb4'}
+
+    },
+
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
