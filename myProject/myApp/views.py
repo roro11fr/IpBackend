@@ -1,13 +1,16 @@
 from django.shortcuts import render
-from .models import Professor
+from .models import Professor, Exam
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, ExamSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.exceptions import TokenError
+from .permissions import IsSecretary
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 
 
 # Create your views here.
@@ -65,3 +68,18 @@ class LogoutView(APIView):
             return Response({"error": f"Token error: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ExamViewSet(ModelViewSet):
+    queryset = Exam.objects.all()
+    serializer_class = ExamSerializer
+
+    def get_permissions(self):
+        """
+        Permisiuni bazate pe metoda HTTP.
+        - GET: Orice utilizator autentificat.
+        - POST, PUT, DELETE: Doar utilizatorii cu rolul 'Secretary'.
+        """
+        if self.request.method in ['POST', 'PUT', 'DELETE']:
+            return [IsSecretary()]
+        return [IsAuthenticated()]

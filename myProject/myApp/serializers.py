@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Exam
 
 
 class LoginSerializer(serializers.Serializer):
@@ -18,3 +19,9 @@ class LoginSerializer(serializers.Serializer):
             'access': str(refresh.access_token),  # Token de acces
             'refresh': str(refresh),             # Token de refresh
         }
+
+
+class ExamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Exam
+        fields = ['id', 'name', 'exam_type', 'exam_date', 'duration', 'department', 'room', 'scheduled_date', 'scheduled_time']
