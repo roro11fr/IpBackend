@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -12,5 +15,6 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid username or password")
         refresh = RefreshToken.for_user(user)
         return {
-            'token': str(refresh.access_token),
+            'access': str(refresh.access_token),  # Token de acces
+            'refresh': str(refresh),             # Token de refresh
         }
