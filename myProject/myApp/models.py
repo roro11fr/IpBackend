@@ -9,7 +9,7 @@ class CustomUser(AbstractUser):
         ('Professor', 'Professor'),
         ('Secretary', 'Secretary'),
         ('HeadOfDepartment', 'HeadOfDepartment'),
-        ('GroupLeader', 'GroupLeader'),
+        ('StudentRepresentative', 'StudentRepresentative'), 
     ]
     
     role = models.CharField(max_length=50, choices=USER_ROLES)
@@ -272,3 +272,26 @@ class ExamSchedulingRequest(models.Model):
 
     def __str__(self):
         return f"Scheduling request for {self.group} on {self.requested_date} at {self.requested_time}"
+
+# 17. Secretary
+class Secretary(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default="Active")
+
+    class Meta:
+        db_table = 'tbl_secretariat'
+
+    def __str__(self):
+        return f"Secretary: {self.user.first_name} {self.user.last_name}"
+
+# 18. DepartamentHead
+class DepartmentHead(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50, default="Active")
+
+    class Meta:
+        db_table = 'tbl_department_head'
+
+    def __str__(self):
+        return f"Department Head: {self.user.first_name} {self.user.last_name}"
