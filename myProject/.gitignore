@@ -23,4 +23,4 @@ db.sqlite3
 
 #setinngs
 # Ignoră fișierul settings.py
-myProject/myProject/settings.py  
+myProject/settings.py  
