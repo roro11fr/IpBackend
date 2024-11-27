@@ -49,17 +49,21 @@ Select the SQL file you received.
 Execute the script using the lightning bolt icon.  
 
 5. Configure Your Django Project  
-Update settings.py for Database Connection  
-In the myProject/settings.py file, update the DATABASES section with your MySQL credentials: 
+Create the local_settings.py file  
+In the same directory as the settings.py file, create a new file called local_settings.py.  
+The full path for the file should be: myProject/myProject/local_settings.py  
+In the local_settings.py file, add the following code for the database settings:  
 DATABASES = {  
     'default': {  
-        'ENGINE': 'django.db.backends.mysql',  
-        'NAME': 'bazaip',        # Replace with your schema name  
-        'USER': 'root',          # MySQL username  
-        'PASSWORD': 'your_password',  # Replace with your root password  
-        'HOST': '127.0.0.1',  
-        'PORT': '3306',  
-    }  
+        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3', or 'oracle'.  
+        'NAME': 'Schema name',  # Replace with the name of your database schema  
+        'USER': 'username',  # Replace with your MySQL username  
+        'PASSWORD': 'your_password',  # Replace with your MySQL password  
+        'HOST': '',  # Leave empty for localhost via domain sockets, or use '127.0.0.1' for TCP  
+        'PORT': '',  # Leave empty for default port  
+        'STORAGE_ENGINE': 'InnoDB',  
+        'OPTIONS': {'charset': 'utf8mb4'}  
+    },  
 }  
 
 6. Apply Django Migrations  
