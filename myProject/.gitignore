@@ -22,4 +22,4 @@ db.sqlite3
 *.tmp
 
 #setinngs
-mysettings.py
+settings.py
