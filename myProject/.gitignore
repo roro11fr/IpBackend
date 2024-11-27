@@ -20,3 +20,6 @@ db.sqlite3
 # Ignoră alte fișiere temporare
 *.log
 *.tmp
+
+#setinngs
+mysettings.py
