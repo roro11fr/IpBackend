@@ -21,6 +21,5 @@ db.sqlite3
 *.log
 *.tmp
 
-#setinngs
-# Ignoră fișierul settings.py
-myProject/settings.py  
+# Ignora fisierul cu datele depre conexiunea la baza de date
+/myProject/local_settings.py 

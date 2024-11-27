@@ -97,33 +97,11 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
+try:
+    from myProject.local_settings import DATABASES  # Import the DATABASES setting from local_settings.py
+except ImportError:
+    pass  # If local_settings.py does not exist, nothing happens
 
-    'default': {
-
-        'ENGINE': 'django.db.backends.mysql',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-
-        'NAME': 'bazaip',                      # Or path to database file if using sqlite3.
-
-        # 'NAME': 'client_test',                      # Or path to database file if using sqlite3.
-
-        # 'NAME': 'promoart',                      # Or path to database file if using sqlite3.
-
-        'USER': 'root',
-
-        'PASSWORD': 'your_password',
-
-        'HOST': 'localhost',               # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-
-        'PORT': '3306',                        # Set to empty string for default.
-
-        'STORAGE_ENGINE': 'InnoDB',
-
-        'OPTIONS': {'charset': 'utf8mb4'}
-
-    },
-
-}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
