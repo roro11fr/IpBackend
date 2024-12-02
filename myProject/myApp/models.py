@@ -113,14 +113,16 @@ class Exam(models.Model):
         ('Oral', 'Oral'),
         ('Mixed', 'Mixed'),
     ]
+    proffesor = models.CharField(max_length=50)
     name = models.CharField(max_length=255)
     exam_type = models.CharField(max_length=50, choices=EXAM_TYPES)
-    exam_date = models.DateTimeField()
     duration = models.IntegerField()  # Durata examenului în minute
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
+    # department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    # room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
     scheduled_date = models.DateField()
     scheduled_time = models.TimeField()
+    department = models.CharField(max_length=50)
+    room = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'tbl_exam'

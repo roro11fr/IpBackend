@@ -5,6 +5,6 @@ from .models import Exam
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('name', 'exam_type', 'exam_date', 'duration', 'department', 'room')
-    search_fields = ('name', 'exam_type')
-    list_filter = ('exam_type', 'exam_date', 'department')
+    list_display = ('name', 'proffesor', 'exam_type', 'scheduled_date', 'scheduled_time', 'duration', 'department', 'room')
+    search_fields = ('name', 'exam_type', 'proffesor', 'room')
+    list_filter = ('exam_type', 'scheduled_date', 'department', 'proffesor', 'room')

@@ -24,4 +24,4 @@ class LoginSerializer(serializers.Serializer):
 class ExamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exam
-        fields = ['id', 'name', 'exam_type', 'exam_date', 'duration', 'department', 'room', 'scheduled_date', 'scheduled_time']
+        fields = ['id', 'proffesor', 'name', 'exam_type', 'duration', 'department', 'room', 'scheduled_date', 'scheduled_time']
