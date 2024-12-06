@@ -9,7 +9,8 @@ class CustomUser(AbstractUser):
         ('Professor', 'Professor'),
         ('Secretary', 'Secretary'),
         ('HeadOfDepartment', 'HeadOfDepartment'),
-        ('StudentRepresentative', 'StudentRepresentative'), 
+        ('StudentRepresentative', 'StudentRepresentative'),
+        ('Other', 'Other')
     ]
     
     role = models.CharField(max_length=50, choices=USER_ROLES)
@@ -21,10 +22,22 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+#20. Facultate
+class Faculty(models.Model):
+    id = models.AutoField(primary_key=True)
+    short_name = models.CharField(max_length=50, blank=True)
+    long_name = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        db_table = 'tbl_faculty'
+
+    def __str__(self):
+        return self.short_name if self.short_name else "Unnamed Faculty"
+
 # 1. Model pentru Departamente
 class Department(models.Model):
     name = models.CharField(max_length=255)
-    faculty_name = models.CharField(max_length=255)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
     contact_info = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
@@ -90,21 +103,16 @@ class Professor(models.Model):
 
 # 7. Model pentru Săli de examen
 class Room(models.Model):
-    ROOM_TYPES = [
-        ('Lecture Hall', 'Lecture Hall'),
-        ('Laboratory', 'Laboratory'),
-        ('Amphitheater', 'Amphitheater'),
-    ]
-    room_number = models.CharField(max_length=50)
-    capacity = models.IntegerField()
-    room_type = models.CharField(max_length=50, choices=ROOM_TYPES)
-    location = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, blank=True, null=True)  # Numele complet al sălii
+    short_name = models.CharField(max_length=50, blank=True)  # Numele prescurtat al sălii
+    building_name = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'tbl_room'
 
     def __str__(self):
-        return self.room_number
+        return f"{self.name or 'Unnamed Room'} ({self.building_name})"
 
 # 8. Model pentru Examene
 class Exam(models.Model):
@@ -297,3 +305,16 @@ class DepartmentHead(models.Model):
 
     def __str__(self):
         return f"Department Head: {self.user.first_name} {self.user.last_name}"
+
+# 19. Cadru Didactic
+class TeachingStaff(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=50, blank=True, null=True)  # Număr de telefon
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)  # Legătură cu Departament
+
+    class Meta:
+        db_table = 'tbl_teaching_staff'
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.department_name})"
