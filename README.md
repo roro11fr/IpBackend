@@ -1,12 +1,23 @@
 # IpBackend  
-Steps to run this project:  
-git clone https://github.com/roro11fr/IpBackend.git  
-cd myProject  
-python -m venv myVEnv # create virtual environment -only once  
-source myVEnv/bin/activate  # Linux/macOS  
-myVEnv\Scripts\activate     # Windows - activate environment  
-pip install -r requirements.txt # install all libraries  
-to run: python manage.py runserver  
+### Steps to run this project:
+
+## Windows
+```git clone https://github.com/roro11fr/IpBackend.git```\
+```cd myProject```\
+```python -m venv myVEnv```\
+```create virtual environment```\
+```myVEnv\Scripts\activate```\
+```pip install -r requirements.txt```\
+```python manage.py runserver```
+
+## Linux/macOS
+```git clone https://github.com/roro11fr/IpBackend.git```\
+```cd myProject```\
+```python -m venv myVEnv```\
+```create virtual environment -only once```\
+```source myVEnv/bin/activate```\
+```pip install -r requirements.txt```\
+```python manage.py runserver```
 
 Steps to connect project to the data base:   
 download mysql and install from:  
