@@ -9,7 +9,7 @@ class CustomUser(AbstractUser):
         ('Professor', 'Professor'),
         ('Secretary', 'Secretary'),
         ('HeadOfDepartment', 'HeadOfDepartment'),
-        ('StudentRepresentative', 'StudentRepresentative'),
+        # ('StudentRepresentative', 'StudentRepresentative'),
         ('Other', 'Other')
     ]
     
@@ -91,8 +91,8 @@ class Professor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)  # Titular sau Asistent
-    availability_start = models.DateTimeField()
-    availability_end = models.DateTimeField()
+    availability_start = models.DateTimeField(null=True, blank=True)
+    availability_end = models.DateTimeField(null=True, blank=True)
     activity = models.TextField()
 
     class Meta:
@@ -140,16 +140,10 @@ class Exam(models.Model):
 
 # 9. Model pentru Cereri de programare a examenelor
 class Request(models.Model):
-    REQUEST_TYPES = [
-        ('ScheduleRequest', 'Schedule Request'),
-        ('RescheduleRequest', 'Reschedule Request'),
-    ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_requests')
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    request_type = models.CharField(max_length=50, choices=REQUEST_TYPES)
-    request_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, default='Pending', choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')])
-    details = models.TextField(null=True, blank=True)
+    destinatar = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='destinatar_requests')
 
     class Meta:
         db_table = 'tbl_request'
@@ -227,16 +221,6 @@ class ExamSessionSchedule(models.Model):
     def __str__(self):
         return f"Session from {self.start_date} to {self.end_date}"
 
-# 14. Student_Representative
-class StudentRepresentative(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'tbl_student_representative'
-
-    def __str__(self):
-        return f"{self.student} - {self.group}"
 
 # 15. Rescheduling_Requests
 class ReschedulingRequest(models.Model):
@@ -261,27 +245,6 @@ class ReschedulingRequest(models.Model):
 
     def __str__(self):
         return f"Rescheduling request for {self.exam}"
-
-# 16. Exam_Scheduling_Requests
-class ExamSchedulingRequest(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-    
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    requested_date = models.DateField()
-    requested_time = models.TimeField()
-    exam_type = models.CharField(max_length=10, choices=[('oral', 'Oral'), ('written', 'Written'), ('mixed', 'Mixed')])
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = 'tbl_exam_scheduling_request'
-
-    def __str__(self):
-        return f"Scheduling request for {self.group} on {self.requested_date} at {self.requested_time}"
 
 # 17. Secretary
 class Secretary(models.Model):
@@ -308,7 +271,7 @@ class DepartmentHead(models.Model):
 
 # 19. Cadru Didactic
 class TeachingStaff(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=50, blank=True, null=True)  # Număr de telefon
     department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)  # Legătură cu Departament
@@ -317,4 +280,4 @@ class TeachingStaff(models.Model):
         db_table = 'tbl_teaching_staff'
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.department_name})"
+        return f"{self.first_name} {self.last_name} ({self.department_name})" 

@@ -76,47 +76,123 @@
 
 #             self.stdout.write(self.style.SUCCESS(f"Profesorul {first_name} {last_name} a fost importat cu succes"))
 
+# import json
+# from django.core.management.base import BaseCommand
+# from myApp.models import Department, Faculty
+# import os
 
+# class Command(BaseCommand):
+#     help = 'Actualizează departamentele cu facultățile corespunzătoare pe baza numelui facultății din JSON'
+
+#     def handle(self, *args, **kwargs):
+#         # Specifică calea completă a fișierului JSON
+#         file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data_json', 'cadru.json')
+#         file_path = os.path.abspath(file_path)
+        
+#         # Deschide fișierul JSON
+#         with open(file_path, 'r') as f:
+#             data = json.load(f)
+
+#         for item in data:
+#             # Extrage facultatea și departamentul din JSON
+#             faculty_name = (item.get('facultyName') or '').strip()
+#             department_name = (item.get('departmentName') or '').strip()
+
+#             # Căutăm facultatea pe baza long_name (sau short_name dacă preferi)
+#             faculty = Faculty.objects.filter(long_name=faculty_name).first()
+
+#             if not faculty:
+#                 self.stdout.write(self.style.ERROR(f"Facultatea '{faculty_name}' nu a fost găsită."))
+#                 continue
+
+#             # Căutăm departamentul pe baza numelui
+#             department = Department.objects.filter(name=department_name).first()
+
+#             if not department:
+#                 self.stdout.write(self.style.ERROR(f"Departamentul '{department_name}' nu a fost găsit."))
+#                 continue
+
+#             # Actualizăm faculty_id în tabelul Department
+#             department.faculty = faculty  # actualizează referința la obiectul de tip Faculty
+#             department.save()
+
+#             self.stdout.write(self.style.SUCCESS(
+#                 f"Departamentul '{department_name}' a fost actualizat cu facultatea '{faculty_name}' (ID: {faculty.id})."
+#             ))
+
+
+##
 import json
-from django.core.management.base import BaseCommand
-from myApp.models import Department, Faculty
 import os
+from django.core.management.base import BaseCommand
+from myApp.models import TeachingStaff, CustomUser, Department
+
 
 class Command(BaseCommand):
-    help = 'Actualizează departamentele cu facultățile corespunzătoare pe baza numelui facultății din JSON'
+    help = 'Populează tabelul TeachingStaff cu ID-uri și legături corecte utilizând datele din JSON'
 
     def handle(self, *args, **kwargs):
         # Specifică calea completă a fișierului JSON
         file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data_json', 'cadru.json')
         file_path = os.path.abspath(file_path)
-        
-        # Deschide fișierul JSON
-        with open(file_path, 'r') as f:
-            data = json.load(f)
+
+        # Încearcă să deschidă fișierul JSON
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            self.stdout.write(self.style.ERROR(f"Fișierul JSON nu a fost găsit: {file_path}"))
+            return
 
         for item in data:
-            # Extrage facultatea și departamentul din JSON
-            faculty_name = (item.get('facultyName') or '').strip()
+            # Preia datele din JSON
+            json_id = int(item.get('id', 0))
+            email_address = (item.get('emailAddress') or '').strip().lower()
+            phone_number = (item.get('phoneNumber') or '').strip()
             department_name = (item.get('departmentName') or '').strip()
 
-            # Căutăm facultatea pe baza long_name
-            faculty = Faculty.objects.filter(long_name=faculty_name).first()
+            # Verifică validitatea ID-ului din JSON
+            if json_id <= 0:
+                self.stdout.write(self.style.WARNING(f"Înregistrare cu ID invalid ignorată: {item}"))
+                continue
 
-            if not faculty:
-                self.stdout.write(self.style.ERROR(f"Facultatea '{faculty_name}' nu a fost găsită."))
+            try:
+                # Căutăm utilizatorul CustomUser pe baza email-ului
+                custom_user = CustomUser.objects.get(email=email_address)
+            except CustomUser.MultipleObjectsReturned:
+                self.stdout.write(self.style.WARNING(f"Există mai mulți utilizatori cu același email: {email_address}."))
+                # Tipărim toate email-urile care corespund pentru a verifica duplicatele
+                users_with_email = CustomUser.objects.filter(email=email_address)
+                for user in users_with_email:
+                    self.stdout.write(self.style.WARNING(f"Utilizator găsit: {user.email} (ID: {user.id})"))
+                # Folosim primul utilizator găsit
+                custom_user = users_with_email.first()
+                self.stdout.write(self.style.WARNING(f"Folosit primul utilizator găsit cu email {email_address}."))
+            except CustomUser.DoesNotExist:
+                self.stdout.write(self.style.ERROR(f"Utilizatorul cu email {email_address} nu a fost găsit."))
                 continue
 
             # Căutăm departamentul pe baza numelui
             department = Department.objects.filter(name=department_name).first()
-
             if not department:
-                self.stdout.write(self.style.ERROR(f"Departamentul '{department_name}' nu a fost găsit."))
-                continue
+                self.stdout.write(self.style.WARNING(f"Departamentul '{department_name}' nu a fost găsit. Profesorul va fi creat fără departament."))
 
-            # Actualizăm faculty_id în tabelul Department
-            department.faculty_id = faculty.id
-            department.save()
+            # Verificăm dacă înregistrarea în TeachingStaff există deja
+            teaching_staff, created = TeachingStaff.objects.update_or_create(
+                user=custom_user,  # Verificăm unicitatea pe baza user_id
+                defaults={
+                    'id': json_id,  # Setăm ID-ul din JSON
+                    'phone_number': phone_number,
+                    'department': department  # Setăm departamentul găsit
+                }
+            )
 
-            self.stdout.write(self.style.SUCCESS(
-                f"Departamentul '{department_name}' a fost actualizat cu facultatea '{faculty_name}' (ID: {faculty.id})."
-            ))
+            if created:
+                self.stdout.write(self.style.SUCCESS(f"Profesorul {custom_user.first_name} {custom_user.last_name} (ID: {json_id}) a fost creat în TeachingStaff."))
+            else:
+                self.stdout.write(self.style.SUCCESS(f"Profesorul {custom_user.first_name} {custom_user.last_name} (ID: {json_id}) a fost actualizat în TeachingStaff."))
+
+
+
+
+
