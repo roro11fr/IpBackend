@@ -1,11 +1,11 @@
 from django.shortcuts import render
-from .models import Professor, Exam
+from .models import Professor, Exam, Request
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer, ExamSerializer
+from .serializers import LoginSerializer, ExamSerializer, RequestSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.exceptions import TokenError
 from .permissions import IsSecretary
@@ -83,3 +83,10 @@ class ExamViewSet(ModelViewSet):
         if self.request.method in ['POST', 'PUT', 'DELETE']:
             return [IsSecretary()]
         return [IsAuthenticated()]
+
+
+class RequestListView(APIView):
+    def get(self, request):
+        requests = Request.objects.all()
+        serializer = RequestSerializer(requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
