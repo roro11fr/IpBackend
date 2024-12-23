@@ -9,7 +9,7 @@ class CustomUser(AbstractUser):
         ('Professor', 'Professor'),
         ('Secretary', 'Secretary'),
         ('HeadOfDepartment', 'HeadOfDepartment'),
-        # ('StudentRepresentative', 'StudentRepresentative'),
+        ('StudentRepresentative', 'StudentRepresentative'),
         ('Other', 'Other')
     ]
     
@@ -48,7 +48,6 @@ class Department(models.Model):
 
 # 2. Model pentru Specializări
 class Specialization(models.Model):
-    name = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     duration = models.IntegerField()  # Durata studiilor în ani
     study_level = models.CharField(max_length=50, choices=[('Bachelor', 'Bachelor'), ('Master', 'Master'), ('PhD', 'PhD')])
@@ -78,7 +77,6 @@ class Group(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    status = models.CharField(max_length=50, default="Active")
 
     class Meta:
         db_table = 'tbl_student'

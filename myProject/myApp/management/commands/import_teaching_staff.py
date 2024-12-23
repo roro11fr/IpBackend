@@ -122,16 +122,20 @@
 
 
 ##
+
 import json
 import os
 from django.core.management.base import BaseCommand
-from myApp.models import TeachingStaff, CustomUser, Department
-
+from myApp.models import CustomUser, TeachingStaff, Department, DepartmentHead
 
 class Command(BaseCommand):
-    help = 'Populează tabelul TeachingStaff cu ID-uri și legături corecte utilizând datele din JSON'
+    help = 'Șterge utilizatorii cu ID>=17 și îi recreează conform datelor din JSON'
 
     def handle(self, *args, **kwargs):
+        # Ștergem toți utilizatorii cu ID>=17
+        CustomUser.objects.filter(id__gte=10, id__lte=17).delete()
+        self.stdout.write(self.style.SUCCESS(f"Toți utilizatorii cu ID>=17 au fost șterși."))
+
         # Specifică calea completă a fișierului JSON
         file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data_json', 'cadru.json')
         file_path = os.path.abspath(file_path)
@@ -151,46 +155,56 @@ class Command(BaseCommand):
             phone_number = (item.get('phoneNumber') or '').strip()
             department_name = (item.get('departmentName') or '').strip()
 
-            # Verifică validitatea ID-ului din JSON
             if json_id <= 0:
-                self.stdout.write(self.style.WARNING(f"Înregistrare cu ID invalid ignorată: {item}"))
+                self.stdout.write(self.style.WARNING(f"ID-ul din JSON nu este valid: {json_id}"))
                 continue
 
+            # Căutăm utilizatorul pe baza adresei de email
             try:
-                # Căutăm utilizatorul CustomUser pe baza email-ului
-                custom_user = CustomUser.objects.get(email=email_address)
-            except CustomUser.MultipleObjectsReturned:
-                self.stdout.write(self.style.WARNING(f"Există mai mulți utilizatori cu același email: {email_address}."))
-                # Tipărim toate email-urile care corespund pentru a verifica duplicatele
-                users_with_email = CustomUser.objects.filter(email=email_address)
-                for user in users_with_email:
-                    self.stdout.write(self.style.WARNING(f"Utilizator găsit: {user.email} (ID: {user.id})"))
-                # Folosim primul utilizator găsit
-                custom_user = users_with_email.first()
-                self.stdout.write(self.style.WARNING(f"Folosit primul utilizator găsit cu email {email_address}."))
-            except CustomUser.DoesNotExist:
-                self.stdout.write(self.style.ERROR(f"Utilizatorul cu email {email_address} nu a fost găsit."))
+                # Creăm utilizatorul conform datelor din JSON
+                new_user = CustomUser.objects.create(
+                    id=json_id,  # Setăm ID-ul din JSON
+                    username=email_address,  # Username-ul este același cu email-ul
+                    email=email_address,
+                    first_name=item.get('firstName', ''),
+                    last_name=item.get('lastName', ''),
+                    password='cadru',  # Setează o parolă standard pentru toți utilizatorii
+                    role=item.get('role', 'Professor'),  # Dacă există un câmp 'role' în JSON
+                    status='Active'  # Setăm statusul activ
+                )
+
+                # Setăm parola noului utilizator
+                new_user.set_password('cadru')  # Setează o parolă dacă este necesar
+                new_user.save()
+
+                self.stdout.write(self.style.SUCCESS(f"Utilizatorul {new_user.email} a fost creat cu ID-ul {json_id}."))
+
+                # Căutăm departamentul pe baza numelui
+                department = Department.objects.filter(name=department_name).first()
+                if department:
+                    self.stdout.write(self.style.SUCCESS(f"Departamentul '{department_name}' a fost găsit."))
+                else:
+                    self.stdout.write(self.style.WARNING(f"Departamentul '{department_name}' nu a fost găsit. Profesorul va fi creat fără departament."))
+
+                # Creăm înregistrarea pentru TeachingStaff
+                TeachingStaff.objects.create(
+                    user=new_user,
+                    phone_number=phone_number,
+                    department=department  # Dacă departamentul a fost găsit, îl asociem
+                )
+
+                # Dacă există departament head, creăm înregistrarea pentru DepartmentHead
+                if department:
+                    DepartmentHead.objects.create(
+                        user=new_user,
+                        department=department
+                    )
+
+            except Exception as e:
+                self.stdout.write(self.style.ERROR(f"Eroare la crearea utilizatorului {email_address}: {str(e)}"))
                 continue
 
-            # Căutăm departamentul pe baza numelui
-            department = Department.objects.filter(name=department_name).first()
-            if not department:
-                self.stdout.write(self.style.WARNING(f"Departamentul '{department_name}' nu a fost găsit. Profesorul va fi creat fără departament."))
-
-            # Verificăm dacă înregistrarea în TeachingStaff există deja
-            teaching_staff, created = TeachingStaff.objects.update_or_create(
-                user=custom_user,  # Verificăm unicitatea pe baza user_id
-                defaults={
-                    'id': json_id,  # Setăm ID-ul din JSON
-                    'phone_number': phone_number,
-                    'department': department  # Setăm departamentul găsit
-                }
-            )
-
-            if created:
-                self.stdout.write(self.style.SUCCESS(f"Profesorul {custom_user.first_name} {custom_user.last_name} (ID: {json_id}) a fost creat în TeachingStaff."))
-            else:
-                self.stdout.write(self.style.SUCCESS(f"Profesorul {custom_user.first_name} {custom_user.last_name} (ID: {json_id}) a fost actualizat în TeachingStaff."))
+        self.stdout.write(self.style.SUCCESS("Toți utilizatorii din JSON au fost creați cu succes!"))
 
 
 
