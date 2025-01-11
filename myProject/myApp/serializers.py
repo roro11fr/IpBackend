@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Exam, Request
+from .models import CustomUser, Exam, Request
 
 
 class LoginSerializer(serializers.Serializer):
@@ -28,6 +28,64 @@ class ExamSerializer(serializers.ModelSerializer):
 
 
 class RequestSerializer(serializers.ModelSerializer):
+    exam_details = serializers.JSONField(write_only=True)  # Acceptăm datele ca JSON la scriere
+
     class Meta:
         model = Request
-        fields = '__all__'
+        fields = ['id', 'user', 'exam', 'exam_details', 'status', 'destinatar']
+        extra_kwargs = {
+            'exam': {'required': False},
+        }
+
+    def create(self, validated_data):
+    # Extragem exam_details din datele validate
+        exam_details = validated_data.pop('exam_details', None)
+
+        if exam_details and 'proffesor' in exam_details:
+            try:
+                # Obține numele complet al profesorului pe baza ID-ului
+                profesor_id = exam_details['proffesor']
+                profesor = CustomUser.objects.get(id=profesor_id)
+                exam_details['proffesor'] = f"{profesor.last_name} {profesor.first_name}"
+            except CustomUser.DoesNotExist:
+                raise serializers.ValidationError({"proffesor": "Profesorul nu a fost găsit."})
+
+        # Creăm obiectul Request
+        request_obj = Request.objects.create(**validated_data)
+
+        # Salvăm exam_details, dacă există
+        if exam_details:
+            request_obj.exam_details = exam_details
+            request_obj.save()
+
+        return request_obj
+
+
+    def to_representation(self, instance):
+        # Reprezentarea răspunsului (pentru a include exam_details)
+        response = super().to_representation(instance)
+        if instance.exam:
+            response['exam_details'] = {
+                "id": instance.exam.id,
+                "name": instance.exam.name,
+                "exam_type": instance.exam.exam_type,
+                "duration": instance.exam.duration,
+                "department": instance.exam.department,
+                "room": instance.exam.room,
+                "scheduled_date": instance.exam.scheduled_date,
+                "scheduled_time": instance.exam.scheduled_time,
+            }
+        elif hasattr(instance, 'exam_details'):
+            response['exam_details'] = instance.exam_details  # Returnăm detaliile din model
+        else:
+            response['exam_details'] = {
+                "id": None,
+                "name": "No exam assigned",
+                "exam_type": None,
+                "duration": None,
+                "department": None,
+                "room": None,
+                "scheduled_date": None,
+                "scheduled_time": None,
+            }
+        return response

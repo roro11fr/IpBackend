@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import JSONField  # Folosim JSONField pentru a stoca datele structurate
 
 
 class CustomUser(AbstractUser):
@@ -139,9 +140,25 @@ class Exam(models.Model):
 # 9. Model pentru Cereri de programare a examenelor
 class Request(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_requests')
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
-    status = models.CharField(max_length=50, default='Pending', choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')])
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.SET_NULL,
+        null=True,  # Permite valori NULL în baza de date
+        blank=True  # Permite lăsarea câmpului gol în formulare
+    )
+    status = models.CharField(
+        max_length=50,
+        default='Pending',
+        choices=[
+            ('Pending', 'Pending'),
+            ('ApprovedByProfessor', 'ApprovedByProfessor'),
+            ('ApprovedBySecretary', 'ApprovedBySecretary'),
+            ('Rejected', 'Rejected'),
+        ]
+    )
     destinatar = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='destinatar_requests')
+    exam_details = models.JSONField(null=True, blank=True)  # Câmp pentru stocarea detaliilor examenului
+
 
     class Meta:
         db_table = 'tbl_request'
