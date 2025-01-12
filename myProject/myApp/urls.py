@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import LoginView, LogoutView, ExamViewSet, RequestListView, ProfessorRequestsView, SecretaryRequestsView
+from .views import LoginView, LogoutView, ExamViewSet, RequestListView, ProfessorRequestsView, SecretaryRequestsView, RoomListView
 
 
 router = DefaultRouter()
@@ -17,4 +17,6 @@ urlpatterns = [
     path('requests/', RequestListView.as_view(), name='request-list'),
     path('requests/approveProfessor/<int:request_id>/', ProfessorRequestsView.as_view(), name='approveProfessor'),
     path('requests/approveSecretary/<int:request_id>/', SecretaryRequestsView.as_view(), name='approveSecretary'),
+    path('professors/', views.ProfessorListView.as_view(), name='professor-list'),
+    path('rooms/', RoomListView.as_view(), name='rooms-list'),
 ]

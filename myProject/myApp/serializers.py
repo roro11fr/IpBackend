@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import CustomUser, Exam, Request
+from .models import CustomUser, Exam, Request, Room
 
 
 class LoginSerializer(serializers.Serializer):
@@ -94,3 +94,20 @@ class RequestSerializer(serializers.ModelSerializer):
                 "scheduled_time": None,
             }
         return response
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'first_name', 'last_name', 'full_name']
+
+    def get_full_name(self, obj):
+        return f"{obj.last_name} {obj.first_name}"
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['id', 'short_name']

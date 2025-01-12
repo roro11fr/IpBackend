@@ -1,12 +1,12 @@
 from django.forms import ValidationError
 from django.shortcuts import render
-from .models import CustomUser, Professor, Exam, Request
+from .models import CustomUser, Professor, Exam, Request, Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import LoginSerializer, ExamSerializer, RequestSerializer
+from .serializers import LoginSerializer, ExamSerializer, RequestSerializer, CustomUserSerializer, RoomSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.exceptions import TokenError
 from .permissions import IsSecretary, IsProfessor, IsStudent, IsStudentRepresentative
@@ -166,22 +166,14 @@ class RequestListView(APIView):
         room = request.data.get('room')
         scheduled_date = request.data.get('scheduled_date')
         scheduled_time = request.data.get('scheduled_time')
-        profesor_nume = request.data.get('proffesor')
+        profesor_id = request.data.get('proffesor')  # Aici se trimite id-ul profesorului
 
-        # Verifică dacă numele profesorului a fost furnizat
-        if not profesor_nume:
-            return Response({"error": "Profesor name is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            last_name, first_name = profesor_nume.split(" ", 1)
-        except ValueError:
-            return Response({"error": "Profesor name must include both first name and last name."}, status=status.HTTP_400_BAD_REQUEST)
+        # Verifică dacă id-ul profesorului a fost furnizat
+        if not profesor_id:
+            return Response({"error": "Profesor id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            profesor = CustomUser.objects.get(
-                Q(first_name=first_name) & Q(last_name=last_name), 
-                role="Professor"
-            )
+            profesor = CustomUser.objects.get(id=profesor_id, role="Professor")
         except CustomUser.DoesNotExist:
             return Response({"error": "Profesor not found or user does not have the 'Professor' role."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -201,7 +193,7 @@ class RequestListView(APIView):
                 'room': room,
                 'scheduled_date': scheduled_date,
                 'scheduled_time': scheduled_time,
-                'proffesor': profesor.id,
+                'proffesor': profesor.id,  # Folosește id-ul profesorului
             }
         }
 
@@ -348,3 +340,23 @@ class SecretaryRequestsView(APIView):
                 )
 
         return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfessorListView(APIView):
+ 
+    def get(self, request):
+        """
+        Returnează lista de profesori.
+        """
+        professors = CustomUser.objects.filter(role='Professor').order_by('first_name', 'last_name')
+        serializer = CustomUserSerializer(professors, many=True)
+        return Response(serializer.data)
+
+
+class RoomListView(APIView):
+    def get(self, request):
+        search_query = request.query_params.get('search', '')  # Parametru de căutare
+        rooms = Room.objects.filter(short_name__icontains=search_query)  # Filtrăm sălile pe baza căutării
+
+        serializer = RoomSerializer(rooms, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
