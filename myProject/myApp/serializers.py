@@ -62,8 +62,13 @@ class RequestSerializer(serializers.ModelSerializer):
 
 
     def to_representation(self, instance):
-        # Reprezentarea răspunsului (pentru a include exam_details)
         response = super().to_representation(instance)
+
+        # Înlocuim ID-ul destinatarului cu numele complet
+        if instance.destinatar:
+            response['destinatar'] = f"{instance.destinatar.last_name} {instance.destinatar.first_name}"
+        
+        # Gestionăm detaliile examenului
         if instance.exam:
             response['exam_details'] = {
                 "id": instance.exam.id,
@@ -76,7 +81,7 @@ class RequestSerializer(serializers.ModelSerializer):
                 "scheduled_time": instance.exam.scheduled_time,
             }
         elif hasattr(instance, 'exam_details'):
-            response['exam_details'] = instance.exam_details  # Returnăm detaliile din model
+            response['exam_details'] = instance.exam_details
         else:
             response['exam_details'] = {
                 "id": None,

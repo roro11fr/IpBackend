@@ -136,11 +136,24 @@ class RequestListView(APIView):
 
     def get(self, request):
         """
-        Returnează toate cererile de examen.
+        Returnează cererile de examen filtrate în funcție de rolul utilizatorului.
         """
-        requests = Request.objects.all()
+        user = request.user
+
+        if user.role == "Professor":
+            # Profesorul vede doar cererile adresate lui
+            requests = Request.objects.filter(destinatar=user, status="Pending")
+        elif user.role == "Secretary":
+            # Secretariatul vede doar cererile care au fost aprobate de profesori
+            requests = Request.objects.filter(status="ApprovedByProfessor")
+        else:
+            # Alți utilizatori nu au acces
+            return Response({"detail": "Nu aveți permisiunea de a accesa aceste date."},
+                            status=status.HTTP_403_FORBIDDEN)
+
         serializer = RequestSerializer(requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def post(self, request):
         """
@@ -228,14 +241,21 @@ class ProfessorRequestsView(APIView):
     """
     permission_classes = [IsProfessor]
 
+    def get_queryset(self, request):
+        """
+        Filtrăm cererile astfel încât profesorul să vadă doar cererile care îi sunt adresate.
+        """
+        return Request.objects.filter(destinatar=request.user)
+
     def patch(self, request, request_id):
         """
         Aprobare sau respingere cerere de către profesor.
         """
         try:
-            request_obj = Request.objects.get(id=request_id)
+            # Filtrăm cererea doar pentru profesorul curent
+            request_obj = self.get_queryset(request).get(id=request_id)
         except Request.DoesNotExist:
-            return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Request not found or access denied."}, status=status.HTTP_404_NOT_FOUND)
 
         action = request.data.get("action")
 
@@ -245,14 +265,26 @@ class ProfessorRequestsView(APIView):
             return Response({"message": "Request approved by professor."}, status=status.HTTP_200_OK)
         elif action == "reject" and request_obj.status == "Pending":
             request_obj.status = "Rejected"
-            request_obj.save()  # Actualizăm statusul
-            return Response({"message": "Request rejected."}, status=status.HTTP_200_OK)
+            request_obj.save()
+            # Ștergem cererile marcate drept "Rejected"
+            Request.objects.filter(status="Rejected").delete()
+            return Response({"message": "Request rejected and removed."}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid action or status for this request."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SecretaryRequestsView(APIView):
+    """
+    Gestionarea cererilor de către secretariat.
+    """
     permission_classes = [IsAuthenticated, IsSecretary]
+
+    def get_queryset(self):
+        """
+        Filtrăm cererile pentru secretariat:
+        - Doar cererile aprobate de către profesori (statusul 'ApprovedByProfessor').
+        """
+        return Request.objects.filter(status="ApprovedByProfessor")
 
     @transaction.atomic
     def patch(self, request, request_id):
@@ -260,18 +292,15 @@ class SecretaryRequestsView(APIView):
         Aprobare sau respingere cerere de către secretar și crearea examenului asociat.
         """
         try:
-            request_obj = Request.objects.get(id=request_id)
+            # Filtrăm cererea doar pentru secretariat (doar cele aprobate de profesori)
+            request_obj = self.get_queryset().get(id=request_id)
         except Request.DoesNotExist:
-            return Response({"error": "Request not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Request not found or invalid status."}, status=status.HTTP_404_NOT_FOUND)
 
         action = request.data.get("action")
 
         if action == "approve":
-            # Validare și aprobare cerere (logică existentă)
-            if request_obj.status != 'ApprovedByProfessor':
-                return Response({"error": "Request must be approved by the professor first."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Datele examenului primite de la cererea utilizatorului
+            # Validare și aprobare cerere
             exam_data = request.data.get('exam')
 
             if not exam_data:
@@ -301,12 +330,15 @@ class SecretaryRequestsView(APIView):
 
         elif action == "reject":
             # Rejecția cererii
-            if request_obj.status in ["Pending", "ApprovedByProfessor"]:
+            if request_obj.status == "ApprovedByProfessor":
                 request_obj.status = "Rejected"
                 request_obj.save()
 
+                # Opțional: ștergem cererile respinse
+                Request.objects.filter(status="Rejected").delete()
+
                 return Response(
-                    {"message": "Request rejected by secretary."},
+                    {"message": "Request rejected by secretary and removed."},
                     status=status.HTTP_200_OK,
                 )
             else:
