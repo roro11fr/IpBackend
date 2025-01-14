@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-qhyz@@w_g9mkpv5*x9g8tb5j3*h)$_0$0hrmsg(u81=uwn9wxn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
 
 # Custom User model
 AUTH_USER_MODEL = 'myApp.CustomUser'
@@ -40,11 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myApp',  # Add your app here
-    'rest_framework',  # REST framework
-    'rest_framework_simplejwt',  # JWT authentication
-    'rest_framework_simplejwt.token_blacklist',  # For token blacklist support
-    'corsheaders',  # CORS headers support
+    'myApp',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework.authtoken',  # Ensure token authentication is enabled
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
 ]
 
 # Middleware settings
