@@ -258,8 +258,10 @@ class ProfessorRequestsView(APIView):
         elif action == "reject" and request_obj.status == "Pending":
             request_obj.status = "Rejected"
             request_obj.save()
-            # Ștergem cererile marcate drept "Rejected"
-            Request.objects.filter(status="Rejected").delete()
+
+            if request_obj.status =="Rejected":
+                request_obj.delete()
+
             return Response({"message": "Request rejected and removed."}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid action or status for this request."}, status=status.HTTP_400_BAD_REQUEST)
