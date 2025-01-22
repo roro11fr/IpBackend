@@ -15,9 +15,11 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Invalid username or password")
         refresh = RefreshToken.for_user(user)
+        role = user.role
         return {
             'access': str(refresh.access_token),  # Token de acces
             'refresh': str(refresh),             # Token de refresh
+            'role': role
         }
 
 
