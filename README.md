@@ -89,6 +89,6 @@ python manage.py runserver
 
 
 
-###MANUAL USER###
+### MANUAL USER
 
 https://docs.google.com/document/d/1cuY9iYI---huOGdeqS6zfwg27O34xOJB/edit
