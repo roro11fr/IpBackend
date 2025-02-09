@@ -85,3 +85,10 @@ python manage.py migrate
 7. Run the Django Development Server  
 Start your project server:  
 python manage.py runserver  
+
+
+
+
+###MANUAL USER###
+
+https://docs.google.com/document/d/1cuY9iYI---huOGdeqS6zfwg27O34xOJB/edit
