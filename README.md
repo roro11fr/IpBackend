@@ -92,3 +92,15 @@ python manage.py runserver
 ### MANUAL USER
 
 https://docs.google.com/document/d/1cuY9iYI---huOGdeqS6zfwg27O34xOJB/edit
+
+
+### Robert Franciuc's Involvement – Team Leader & Backend Developer
+## Main Role: Coordinated the development team and implemented the backend of the application.
+
+## Responsibilities:
+# Team Coordination: Led the development team, ensuring that all members were aligned with the project objectives and deadlines.
+# Database Architecture Design: Designed and implemented data models using Django ORM, defining relationships between tables and ensuring scalability and efficiency.
+# User Authentication: Implemented JWT authentication for secure user login and configured CORS for proper communication between the frontend and backend.
+# RESTful API Development: Created RESTful APIs to facilitate seamless integration between the backend and frontend, ensuring all required data was accessible.
+# Database Migrations: Managed and optimized database migrations, providing support to the team to ensure smooth updates to the database schema.
+# Unit Testing: Developed and executed unit tests using pytest to ensure the correctness and functionality of backend endpoints
